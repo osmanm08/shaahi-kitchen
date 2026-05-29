@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#5C0A14" />
+<title>Shaahi Biryani — Kitchen</title>
+<link rel="icon" type="image/png" href="favicon.png" />
+<link rel="apple-touch-icon" href="logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --maroon: #5C0A14; --maroon-d: #3A0509; --gold: #C9A84C; --gold-l: #E8C97A;
+    --gold-p: #F5E4B0; --gold-d: #8B6914; --cream: #F5EDD8; --black: #08020A; --near-black: #100308;
+    --text-warm: #E0C9A0; --text-muted: #907050;
+    --green: #2E7D32; --green-l: #4CAF50; --red: #B23A2E; --blue: #2A6F97;
+    --display: 'Cinzel', serif;
+    --body: 'Cormorant Garamond', Georgia, serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+
+  /* Full-screen logo watermark behind all content */
+  #watermark {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: url('logo-watermark.png') no-repeat center center;
+    background-size: min(58vw, 58vh) auto;
+    opacity: 0.08;
+  }
+  #login-view, #board-view { position: relative; z-index: 1; }
+  body {
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, rgba(92,10,20,.45), transparent 60%),
+      linear-gradient(180deg, var(--black) 0%, #0c0207 100%);
+    background-attachment: fixed;
+    color: var(--cream);
+    font-family: var(--body);
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: var(--display); cursor: pointer; border: none; }
+  .hidden { display: none !important; }
+
+  /* ── Header ───────────────────────────── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 26px;
+    background: linear-gradient(180deg, var(--maroon-d) 0%, var(--near-black) 100%);
+    border-bottom: 1px solid rgba(201,168,76,.28);
+    box-shadow: 0 2px 18px rgba(0,0,0,.6);
+    position: sticky; top: 0; z-index: 20;
+  }
+  header::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    opacity: .55;
+  }
+  .logo-medallion {
+    width: 46px; height: 46px; border-radius: 50%; flex: 0 0 auto;
+    background: var(--cream); border: 1.5px solid var(--gold);
+    box-shadow: 0 0 14px rgba(201,168,76,.35), inset 0 0 0 2px rgba(255,255,255,.6);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .logo-medallion img { width: 100%; height: 100%; object-fit: contain; }
+  .logo-medallion.lg { width: 116px; height: 116px; border-width: 2px;
+    box-shadow: 0 0 30px rgba(201,168,76,.4), inset 0 0 0 3px rgba(255,255,255,.6); }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand h1 {
+    font-family: var(--display); margin: 0; font-size: 23px; letter-spacing: .26em;
+    color: var(--gold); text-transform: uppercase; font-weight: 700;
+    text-shadow: 0 0 18px rgba(201,168,76,.25);
+  }
+  .brand .sub { font-family: var(--display); font-size: 12px; letter-spacing: .3em; color: var(--text-muted); text-transform: uppercase; }
+  .head-right { display: flex; align-items: center; gap: 18px; }
+  .clock { font-family: var(--display); font-variant-numeric: tabular-nums; color: var(--text-warm); font-size: 15px; letter-spacing: .14em; }
+  .pill-btn {
+    background: transparent; color: var(--gold); border: 1px solid rgba(201,168,76,.42);
+    padding: 8px 16px; border-radius: 999px; font-size: 11px;
+    letter-spacing: .2em; text-transform: uppercase; transition: background .15s, box-shadow .15s;
+  }
+  .pill-btn:hover { background: rgba(201,168,76,.1); box-shadow: 0 0 14px rgba(201,168,76,.18); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 7px; vertical-align: middle; }
+  .dot.live { background: var(--green-l); box-shadow: 0 0 8px var(--green-l); }
+  .dot.off { background: var(--text-muted); }
+  .conn { font-family: var(--display); font-size: 11px; letter-spacing: .16em; color: var(--text-muted); text-transform: uppercase; }
+
+  /* ── Login ───────────────────────────── */
+  #login-view {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 24px; gap: 10px;
+  }
+  #login-view h1 {
+    font-family: var(--display); color: var(--gold); letter-spacing: .3em; text-transform: uppercase;
+    font-size: 30px; font-weight: 700; margin: 0; text-align: center;
+    text-shadow: 0 0 26px rgba(201,168,76,.3);
+  }
+  #login-view .tag { font-family: var(--display); color: var(--text-muted); letter-spacing: .3em; text-transform: uppercase; font-size: 12px; }
+  .login-divider { width: 180px; height: 1px; margin: 16px 0 22px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent); opacity: .6; }
+  .login-card {
+    background: linear-gradient(180deg, var(--near-black), var(--maroon-d));
+    border: 1px solid rgba(201,168,76,.28); border-radius: 16px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(201,168,76,.08);
+    padding: 30px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .login-card input {
+    background: rgba(8,2,10,.7); border: 1px solid rgba(201,168,76,.2); color: var(--cream);
+    padding: 14px 16px; border-radius: 10px; font-size: 16px; font-family: var(--body); font-weight: 500;
+  }
+  .login-card input::placeholder { color: var(--text-muted); }
+  .login-card input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201,168,76,.15); }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold-p), var(--gold), var(--gold-d));
+    color: var(--maroon-d); font-weight: 700; padding: 16px;
+    border-radius: 999px; letter-spacing: .2em; text-transform: uppercase; font-size: 14px;
+    box-shadow: 0 6px 22px rgba(201,168,76,.35); transition: box-shadow .15s, transform .05s;
+  }
+  .btn-gold:hover { box-shadow: 0 8px 30px rgba(201,168,76,.5); }
+  .btn-gold:active { transform: translateY(1px); }
+  .btn-gold:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+  .err { color: #ff8a7a; font-size: 15px; min-height: 18px; text-align: center; font-family: var(--body); }
+
+  /* ── Board ───────────────────────────── */
+  #board-view { padding: 18px; }
+  .toolbar { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; flex-wrap: wrap; }
+  .count-chip { font-family: var(--display); color: var(--text-warm); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; }
+  .count-chip b { color: var(--gold); font-size: 20px; }
+  .toggle { font-family: var(--display); color: var(--text-muted); font-size: 11px; letter-spacing: .14em; display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: uppercase; }
+  .toggle input { width: 16px; height: 16px; accent-color: var(--gold); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; align-items: start; }
+
+  .card {
+    background: linear-gradient(180deg, var(--near-black) 0%, #160409 100%);
+    border: 1px solid rgba(201,168,76,.16); border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.45);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .card.s-pending { border-color: rgba(201,168,76,.65); box-shadow: 0 0 0 1px rgba(201,168,76,.4), 0 0 22px rgba(201,168,76,.18); }
+  .card.flash { animation: flash 1.1s ease-in-out 3; }
+  @keyframes flash { 0%,100% { box-shadow: 0 0 0 1px rgba(201,168,76,.4); } 50% { box-shadow: 0 0 30px 3px rgba(201,168,76,.6); } }
+
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between; padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(92,10,20,.9), var(--maroon-d));
+    border-bottom: 1px solid rgba(201,168,76,.14);
+  }
+  .ordno { font-family: var(--display); font-size: 21px; letter-spacing: .1em; color: var(--gold-p); font-weight: 700; }
+  .ordno span { font-family: var(--display); font-size: 11px; color: var(--text-muted); letter-spacing: .14em; text-transform: uppercase; }
+  .ftype { font-family: var(--display); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; padding: 5px 11px; border-radius: 999px; font-weight: 600; }
+  .ftype.pickup { background: rgba(42,111,151,0.25); color: #8ecae6; border: 1px solid #2A6F97; }
+  .ftype.delivery { background: rgba(178,58,46,0.22); color: #ffb4a8; border: 1px solid var(--red); }
+  .ftype.dine_in { background: rgba(201,168,76,0.18); color: var(--gold-l); border: 1px solid var(--gold-d); }
+
+  .meta { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid rgba(201,168,76,.08); }
+  .status-badge { font-family: var(--display); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+  .sb-pending { background: linear-gradient(135deg, var(--gold-p), var(--gold)); color: var(--maroon-d); }
+  .sb-accepted { background: #2A6F97; color: #fff; }
+  .sb-preparing { background: #6A4FB0; color: #fff; }
+  .sb-ready { background: var(--green); color: #fff; }
+  .sb-out_for_delivery { background: #B07A2A; color: #fff; }
+  .elapsed { font-family: var(--display); font-size: 13px; color: var(--text-warm); font-variant-numeric: tabular-nums; letter-spacing: .1em; }
+  .elapsed.warn { color: #ffb454; }
+  .elapsed.late { color: #ff7a6a; font-weight: 700; }
+
+  .cust { padding: 11px 16px; font-family: var(--body); font-size: 16px; color: var(--text-warm); border-bottom: 1px solid rgba(201,168,76,.08); }
+  .cust .name { color: var(--cream); font-weight: 700; font-size: 18px; }
+  .cust a { color: var(--gold-l); text-decoration: none; }
+  .cust .addr { display: block; margin-top: 3px; color: var(--text-muted); font-size: 15px; }
+
+  .items { padding: 13px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .line { display: flex; gap: 12px; font-family: var(--body); }
+  .qty { font-family: var(--display); color: var(--gold); font-weight: 700; min-width: 32px; font-size: 17px; }
+  .line-body { flex: 1; }
+  .line-name { color: var(--cream); font-size: 18px; font-weight: 600; }
+  .line-variant { color: var(--text-muted); font-size: 15px; }
+  .line-note { color: #ffc46b; font-size: 15px; font-style: italic; margin-top: 2px; font-weight: 500; }
+  .line-note::before { content: "✏ "; }
+
+  .totals { padding: 12px 16px; border-top: 1px solid rgba(201,168,76,.12); display: flex; justify-content: space-between; align-items: baseline; }
+  .totals .lbl { font-family: var(--display); color: var(--text-muted); text-transform: uppercase; letter-spacing: .16em; font-size: 11px; }
+  .totals .amt { font-family: var(--display); color: var(--gold); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .redeemed { font-family: var(--body); font-size: 14px; color: var(--text-muted); text-transform: none; letter-spacing: 0; }
+
+  .actions { padding: 13px 14px; display: flex; gap: 10px; border-top: 1px solid rgba(201,168,76,.12); }
+  .act { flex: 1; padding: 15px 8px; border-radius: 10px; font-family: var(--display); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; transition: filter .15s, transform .05s; }
+  .act:active { transform: translateY(1px); }
+  .act.primary { background: linear-gradient(135deg, var(--green-l), var(--green)); color: #fff; box-shadow: 0 4px 16px rgba(46,125,50,.3); }
+  .act.primary:hover { filter: brightness(1.1); }
+  .act.neutral { background: linear-gradient(135deg, #3a89bf, var(--blue)); color: #fff; box-shadow: 0 4px 16px rgba(42,111,151,.3); }
+  .act.neutral:hover { filter: brightness(1.1); }
+  .act.danger { background: transparent; color: #ff8a7a; border: 1px solid rgba(178,58,46,.7); flex: 0 0 auto; padding: 15px 18px; }
+  .act.danger:hover { background: rgba(178,58,46,0.18); }
+  .act:disabled { opacity: 0.5; cursor: default; filter: none; }
+
+  .empty { text-align: center; padding: 90px 20px; color: var(--text-muted); }
+  .empty .big { font-family: var(--display); font-size: 22px; letter-spacing: .18em; color: var(--text-warm); text-transform: uppercase; margin-bottom: 10px; }
+  .empty .big + div { font-family: var(--body); font-size: 17px; }
+
+  .sound-prompt { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--maroon), var(--maroon-d)); color: var(--gold-p);
+    font-family: var(--display); padding: 13px 22px; border-radius: 999px;
+    border: 1px solid var(--gold); font-size: 12px; letter-spacing: .12em; z-index: 50; cursor: pointer;
+    box-shadow: 0 8px 26px rgba(0,0,0,.5); }
+</style>
+</head>
+<body>
+
+  <div id="watermark"></div>
+
+  <!-- LOGIN -->
+  <div id="login-view">
+    <div class="logo-medallion lg" style="margin-bottom:18px;"><img src="logo.png" alt="Shaahi Biryani" /></div>
+    <h1>Shaahi Biryani</h1>
+    <div class="tag">Kitchen Display</div>
+    <div class="login-divider"></div>
+    <div class="login-card">
+      <input id="email" type="email" placeholder="Staff email" autocomplete="username" />
+      <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+      <button id="login-btn" class="btn-gold">Sign in</button>
+      <div id="login-err" class="err"></div>
+    </div>
+  </div>
+
+  <!-- BOARD -->
+  <div id="board-view" class="hidden">
+    <header>
+      <div class="brand">
+        <div class="logo-medallion"><img src="logo.png" alt="Shaahi Biryani" /></div>
+        <h1>Shaahi Biryani</h1>
+        <span class="sub">Kitchen</span>
+      </div>
+      <div class="head-right">
+        <span class="conn"><span id="conn-dot" class="dot off"></span><span id="conn-text">connecting…</span></span>
+        <span id="clock" class="clock"></span>
+        <button id="signout-btn" class="pill-btn">Sign out</button>
+      </div>
+    </header>
+
+    <div style="padding:0 18px;">
+      <div class="toolbar" style="margin-top:16px;">
+        <span class="count-chip"><b id="active-count">0</b> active orders</span>
+        <label class="toggle"><input type="checkbox" id="show-done" /> Show completed today</label>
+        <button id="refresh-btn" class="pill-btn">Refresh</button>
+      </div>
+    </div>
+
+    <div id="board-view-inner" style="padding:0 18px 40px;">
+      <div id="grid" class="grid"></div>
+      <div id="empty" class="empty hidden">
+        <div class="big">No active orders</div>
+        <div>New orders will appear here automatically.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sound-prompt" class="sound-prompt hidden">🔔 Tap to enable new-order sound</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// ── Config (anon key is public by design — safe to embed) ──
+const SUPABASE_URL = 'https://wtdthjhqgsbnyjucdqxl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0ZHRoamhxZ3NibnlqdWNkcXhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NjcxMzcsImV4cCI6MjA5MjQ0MzEzN30.1WYVcbrulkg0l7QB-scj4KcJCnMwFKSLHXucEdEZV3Q';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+});
+
+const POLL_MS = 10000;
+const ACTIVE = ['pending','accepted','preparing','ready','out_for_delivery'];
+
+// Status → which transitions a button offers
+function nextActions(status, fulfillment) {
+  switch (status) {
+    case 'pending':    return [{ label: 'Accept', to: 'accepted', cls: 'primary' }];
+    case 'accepted':   return [{ label: 'Start preparing', to: 'preparing', cls: 'primary' }];
+    case 'preparing':  return [{ label: 'Mark ready', to: 'ready', cls: 'primary' }];
+    case 'ready':
+      return fulfillment === 'delivery'
+        ? [{ label: 'Out for delivery', to: 'out_for_delivery', cls: 'neutral' }]
+        : [{ label: 'Complete', to: 'delivered', cls: 'primary' }];
+    case 'out_for_delivery': return [{ label: 'Delivered', to: 'delivered', cls: 'primary' }];
+    default: return [];
+  }
+}
+
+const $ = (id) => document.getElementById(id);
+const fmtMoney = (n) => '$' + Number(n || 0).toFixed(2);
+const ordNo = (id) => id.slice(-6).toUpperCase();
+
+// ── State ──
+let pollTimer = null;
+let knownPendingIds = new Set();
+let firstLoad = true;
+let soundReady = false;
+let audioCtx = null;
+
+// ── Auth flow ──
+async function init() {
+  const { data } = await supabase.auth.getSession();
+  if (data.session) await enterBoard();
+  else showLogin();
+}
+
+function showLogin() {
+  $('login-view').classList.remove('hidden');
+  $('board-view').classList.add('hidden');
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+$('login-btn').addEventListener('click', doLogin);
+$('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const btn = $('login-btn');
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  $('login-err').textContent = '';
+  if (!email || !password) { $('login-err').textContent = 'Enter email and password.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign in';
+  if (error) { $('login-err').textContent = error.message; return; }
+  await enterBoard();
+}
+
+$('signout-btn').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  knownPendingIds = new Set(); firstLoad = true;
+  showLogin();
+});
+
+async function enterBoard() {
+  // Gate: must be staff.
+  const { data: isStaff, error } = await supabase.rpc('current_user_is_staff');
+  if (error || !isStaff) {
+    await supabase.auth.signOut();
+    $('login-view').classList.remove('hidden');
+    $('board-view').classList.add('hidden');
+    $('login-err').textContent = error
+      ? 'Could not verify access. Try again.'
+      : 'This account is not authorized for the kitchen view.';
+    return;
+  }
+  $('login-view').classList.add('hidden');
+  $('board-view').classList.remove('hidden');
+  if (!soundReady) $('sound-prompt').classList.remove('hidden');
+  firstLoad = true;
+  await loadOrders();
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(loadOrders, POLL_MS);
+}
+
+// ── Data ──
+async function loadOrders() {
+  const showDone = $('show-done').checked;
+  const statuses = showDone ? [...ACTIVE, 'delivered', 'cancelled'] : ACTIVE;
+
+  let query = supabase
+    .from('orders')
+    .select('id, status, fulfillment, subtotal, tax, delivery_fee, tip, total, points_redeemed, delivery_address, created_at, user_id, order_items(item_name, variant_name, quantity, unit_price, special_instructions)')
+    .in('status', statuses)
+    .order('created_at', { ascending: true });
+
+  // When showing completed, keep the list manageable.
+  if (showDone) query = query.order('created_at', { ascending: false }).limit(60);
+
+  const { data: orders, error } = await query;
+  if (error) { setConn(false, 'connection lost'); return; }
+  setConn(true, 'live');
+
+  // Fetch customer profiles in one go (no FK dependency assumed).
+  const userIds = [...new Set(orders.map((o) => o.user_id).filter(Boolean))];
+  let profiles = {};
+  if (userIds.length) {
+    const { data: profRows } = await supabase
+      .from('profiles').select('id, full_name, phone, email').in('id', userIds);
+    (profRows || []).forEach((p) => { profiles[p.id] = p; });
+  }
+
+  // New pending-order chime.
+  const pendingNow = orders.filter((o) => o.status === 'pending').map((o) => o.id);
+  if (!firstLoad) {
+    const fresh = pendingNow.filter((id) => !knownPendingIds.has(id));
+    if (fresh.length) chime();
+  }
+  knownPendingIds = new Set(pendingNow);
+  firstLoad = false;
+
+  render(orders, profiles);
+}
+
+function render(orders, profiles) {
+  const grid = $('grid');
+  const showDone = $('show-done').checked;
+  const visible = orders; // already filtered by query
+  $('active-count').textContent = orders.filter((o) => ACTIVE.includes(o.status)).length;
+
+  if (!visible.length) {
+    grid.innerHTML = '';
+    $('empty').classList.remove('hidden');
+    return;
+  }
+  $('empty').classList.add('hidden');
+
+  grid.innerHTML = visible.map((o) => card(o, profiles[o.user_id])).join('');
+
+  // Wire action buttons.
+  grid.querySelectorAll('button[data-order]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-order');
+      const to = btn.getAttribute('data-to');
+      if (to === 'cancelled' && !confirm('Cancel this order? This also reverses any loyalty points.')) return;
+      updateStatus(id, to, btn);
+    });
+  });
+}
+
+function card(o, prof) {
+  const items = o.order_items || [];
+  const isDone = o.status === 'delivered' || o.status === 'cancelled';
+  const acts = nextActions(o.status, o.fulfillment);
+  const addr = o.delivery_address;
+  const flash = o.status === 'pending' ? 'flash' : '';
+
+  const itemsHtml = items.map((it) => `
+    <div class="line">
+      <div class="qty">${it.quantity}×</div>
+      <div class="line-body">
+        <div class="line-name">${esc(it.item_name)}</div>
+        ${it.variant_name ? `<div class="line-variant">${esc(it.variant_name)}</div>` : ''}
+        ${it.special_instructions ? `<div class="line-note">${esc(it.special_instructions)}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  const custHtml = `
+    <div class="cust">
+      <span class="name">${esc(prof?.full_name || 'Guest')}</span>
+      ${prof?.phone ? ` · <a href="tel:${esc(prof.phone)}">${esc(prof.phone)}</a>` : ''}
+      ${o.fulfillment === 'delivery' && addr
+        ? `<span class="addr">${esc(addr.street || '')}${addr.apt ? ', ' + esc(addr.apt) : ''}, ${esc(addr.city || '')} ${esc(addr.zip || '')}</span>`
+        : ''}
+    </div>`;
+
+  const actionsHtml = isDone ? '' : `
+    <div class="actions">
+      ${acts.map((a) => `<button class="act ${a.cls}" data-order="${o.id}" data-to="${a.to}">${a.label}</button>`).join('')}
+      <button class="act danger" data-order="${o.id}" data-to="cancelled">Cancel</button>
+    </div>`;
+
+  const statusLabel = o.status.replace(/_/g, ' ');
+
+  return `
+    <div class="card s-${o.status} ${flash}" id="card-${o.id}">
+      <div class="card-head">
+        <div class="ordno">#${ordNo(o.id)} <span>${esc((o.fulfillment || '').replace('_',' '))}</span></div>
+        <div class="ftype ${o.fulfillment}">${esc((o.fulfillment || '').replace('_',' '))}</div>
+      </div>
+      <div class="meta">
+        <span class="status-badge sb-${o.status}">${esc(statusLabel)}</span>
+        <span class="elapsed" data-created="${o.created_at}"></span>
+      </div>
+      ${custHtml}
+      <div class="items">${itemsHtml || '<div class="line-variant">No items</div>'}</div>
+      <div class="totals">
+        <span class="lbl">Total ${o.points_redeemed ? `<span class="redeemed">· ${o.points_redeemed} pts used</span>` : ''}</span>
+        <span class="amt">${fmtMoney(o.total)}</span>
+      </div>
+      ${actionsHtml}
+    </div>`;
+}
+
+async function updateStatus(id, to, btn) {
+  // Disable the whole card's buttons during the call.
+  const cardEl = $('card-' + id);
+  if (cardEl) cardEl.querySelectorAll('button').forEach((b) => (b.disabled = true));
+  const { error } = await supabase.rpc('set_order_status', { p_order_id: id, p_status: to });
+  if (error) {
+    alert('Could not update order: ' + error.message);
+    if (cardEl) cardEl.querySelectorAll('button').forEach((b) => (b.disabled = false));
+    return;
+  }
+  await loadOrders();
+}
+
+// ── Elapsed-time ticker ──
+function tickElapsed() {
+  document.querySelectorAll('.elapsed[data-created]').forEach((el) => {
+    const created = new Date(el.getAttribute('data-created')).getTime();
+    const mins = Math.floor((Date.now() - created) / 60000);
+    el.textContent = mins < 1 ? 'just now' : mins + ' min';
+    el.classList.toggle('warn', mins >= 15 && mins < 30);
+    el.classList.toggle('late', mins >= 30);
+  });
+}
+
+// ── Clock ──
+function tickClock() {
+  const d = new Date();
+  $('clock').textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function setConn(ok, text) {
+  $('conn-dot').className = 'dot ' + (ok ? 'live' : 'off');
+  $('conn-text').textContent = text;
+}
+
+// ── Sound ──
+$('sound-prompt').addEventListener('click', () => {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  soundReady = true;
+  $('sound-prompt').classList.add('hidden');
+  chime();
+});
+
+function chime() {
+  if (!soundReady || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  [880, 1175, 1568].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    const t = now + i * 0.16;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.25, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    osc.start(t); osc.stop(t + 0.42);
+  });
+}
+
+// ── Listeners ──
+$('show-done').addEventListener('change', loadOrders);
+$('refresh-btn').addEventListener('click', loadOrders);
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') showLogin();
+});
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+setInterval(tickElapsed, 1000);
+setInterval(tickClock, 1000);
+tickClock();
+init();
+</script>
+</body>
+</html>
